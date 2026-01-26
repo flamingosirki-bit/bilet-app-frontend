@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://bilet-app-backend-1.onrender.com"; // değiştir
+const API_BASE_URL = "https://bilet-app-backend-1.onrender.com"; 
 
 const seatWrapper = document.getElementById("seatWrapper");
 const checkoutBtn = document.getElementById("checkoutBtn");
