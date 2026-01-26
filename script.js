@@ -1,7 +1,15 @@
+const API_BASE_URL = "https://bilet-app-backend-1.onrender.com";
+
+
 const seatWrapper = document.getElementById("seatWrapper");
 const checkoutBtn = document.getElementById("checkoutBtn");
-const bonusText = document.getElementById("bonusText"); // opsiyonel olarak bonus gösterimi
+const bonusText = document.getElementById("bonusText");
 const userId = "user1";
+
+if (!seatWrapper) console.error("seatWrapper bulunamadı!");
+if (!checkoutBtn) console.error("checkoutBtn bulunamadı!");
+if (!bonusText) console.warn("bonusText bulunamadı!");
+
 
 // 30 satır: A-Z + AA-AD
 const rows = [];
@@ -51,7 +59,7 @@ rows.forEach(row => {
       const isBonus = bonusRemaining > 0;
 
       try {
-        const response = await fetch("http://localhost:3000/lock-seats", {
+        const response = await fetch(`${API_BASE_URL}/lock-seats`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -92,12 +100,22 @@ rows.forEach(row => {
   seatWrapper.appendChild(rowDiv);
 });
 
-// 2️⃣ Sayfa açılır açılmaz backend’den durumları yükle
+// 2️⃣ Sayfa açılır açılmaz backend’den durumları yükle ve polling ile güncelle
 async function loadSeatStatus() {
   try {
-    const response = await fetch("http://localhost:3000/seats-status");
+    const response = await fetch(`${API_BASE_URL}/seats-status`);
     const data = await response.json();
 
+    // Tüm koltukları önce "free" yap (seçili veya satılmış olanlar güncellenecek)
+    const allSeats = document.querySelectorAll(".seat");
+    allSeats.forEach(seat => {
+      if (!seat.classList.contains("selected") && !seat.classList.contains("sold")) {
+        seat.classList.remove("sold", "selected");
+        seat.classList.add("free");
+      }
+    });
+
+    // Satılmış koltukları güncelle
     data.soldSeats.forEach(id => {
       const seatBtn = document.querySelector(`.seat[data-id='${id}']`);
       if (seatBtn) {
@@ -106,12 +124,16 @@ async function loadSeatStatus() {
       }
     });
 
+    // Kilitlenmiş (locked) koltukları güncelle
     data.lockedSeats.forEach(id => {
       const seatBtn = document.querySelector(`.seat[data-id='${id}']`);
       if (seatBtn) {
         seatBtn.classList.remove("free", "sold");
         seatBtn.classList.add("selected");
-        cart.push(id); // Sepete ekle
+
+        if (!cart.includes(id)) {
+          cart.push(id);
+        }
       }
     });
 
@@ -119,7 +141,12 @@ async function loadSeatStatus() {
     console.error("Koltuğu yükleme hatası:", err);
   }
 }
+
+// İlk yükleme
 loadSeatStatus();
+
+// 5 saniyede bir backend’den durumu güncelle (polling)
+setInterval(loadSeatStatus, 5000);
 
 // 3️⃣ Checkout / Ödeme simülasyonu
 checkoutBtn.addEventListener("click", async () => {
@@ -129,7 +156,7 @@ checkoutBtn.addEventListener("click", async () => {
   }
 
   try {
-    const response = await fetch("http://localhost:3000/checkout", {
+    const response = await fetch(`${API_BASE_URL}/checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, cart })
@@ -146,7 +173,8 @@ checkoutBtn.addEventListener("click", async () => {
         }
       });
 
-      bonusRemaining += data.purchased.length; // her satın alınan koltuk için 1 bonus
+      // Her satın alınan koltuk için 1 bonus
+      bonusRemaining += data.purchased.length;
       cart = [];
       if (bonusText) bonusText.innerText = bonusRemaining;
 
