@@ -1,15 +1,11 @@
+// Backend URL
 const API_BASE_URL = "https://bilet-app-backend-1.onrender.com";
 
-
+// DOM elementleri
 const seatWrapper = document.getElementById("seatWrapper");
 const checkoutBtn = document.getElementById("checkoutBtn");
 const bonusText = document.getElementById("bonusText");
-const userId = "user1";
-
-if (!seatWrapper) console.error("seatWrapper bulunamadı!");
-if (!checkoutBtn) console.error("checkoutBtn bulunamadı!");
-if (!bonusText) console.warn("bonusText bulunamadı!");
-
+const userId = "user1"; // kullanıcı id’si (statik veya login ile değiştirilebilir)
 
 // 30 satır: A-Z + AA-AD
 const rows = [];
@@ -42,20 +38,17 @@ rows.forEach(row => {
       if (seat.classList.contains("selected")) {
         seat.classList.remove("selected");
         seat.classList.add("free");
-
-        // Sepetten çıkar
         cart = cart.filter(s => s !== seat.dataset.id);
 
-        // Bonus geri geliyorsa
         if (seat.dataset.bonus === "1") {
           bonusRemaining++;
-          if (bonusText) bonusText.innerText = bonusRemaining;
+          bonusText.innerText = bonusRemaining;
         }
         seat.dataset.bonus = "0";
         return;
       }
 
-      // Bonus seçimi mi?
+      // Bonus hakkı varsa
       const isBonus = bonusRemaining > 0;
 
       try {
@@ -74,20 +67,18 @@ rows.forEach(row => {
         if (data.lockedSeats.includes(seat.dataset.id)) {
           seat.classList.add("selected");
           seat.classList.remove("free");
-
           seat.dataset.bonus = isBonus ? "1" : "0";
 
           cart.push(seat.dataset.id);
 
           if (isBonus) {
             bonusRemaining--;
-            if (bonusText) bonusText.innerText = bonusRemaining;
+            bonusText.innerText = bonusRemaining;
             alert(`Bonus koltuk seçildi! Kalan bonus: ${bonusRemaining}`);
           }
         } else {
           alert(`${seat.dataset.id} koltuğu seçilemedi!`);
         }
-
       } catch (err) {
         console.error(err);
         alert("Backend bağlantı hatası!");
@@ -100,22 +91,13 @@ rows.forEach(row => {
   seatWrapper.appendChild(rowDiv);
 });
 
-// 2️⃣ Sayfa açılır açılmaz backend’den durumları yükle ve polling ile güncelle
+// 2️⃣ Backend’den durumları çek
 async function loadSeatStatus() {
   try {
     const response = await fetch(`${API_BASE_URL}/seats-status`);
     const data = await response.json();
 
-    // Tüm koltukları önce "free" yap (seçili veya satılmış olanlar güncellenecek)
-    const allSeats = document.querySelectorAll(".seat");
-    allSeats.forEach(seat => {
-      if (!seat.classList.contains("selected") && !seat.classList.contains("sold")) {
-        seat.classList.remove("sold", "selected");
-        seat.classList.add("free");
-      }
-    });
-
-    // Satılmış koltukları güncelle
+    // Satılmış koltuklar
     data.soldSeats.forEach(id => {
       const seatBtn = document.querySelector(`.seat[data-id='${id}']`);
       if (seatBtn) {
@@ -124,28 +106,24 @@ async function loadSeatStatus() {
       }
     });
 
-    // Kilitlenmiş (locked) koltukları güncelle
+    // Kilitli koltuklar
     data.lockedSeats.forEach(id => {
       const seatBtn = document.querySelector(`.seat[data-id='${id}']`);
       if (seatBtn) {
         seatBtn.classList.remove("free", "sold");
         seatBtn.classList.add("selected");
-
-        if (!cart.includes(id)) {
-          cart.push(id);
-        }
+        if (!cart.includes(id)) cart.push(id);
       }
     });
-
   } catch (err) {
     console.error("Koltuğu yükleme hatası:", err);
   }
 }
 
-// İlk yükleme
+// Sayfa açılır açılmaz ilk yükleme
 loadSeatStatus();
 
-// 5 saniyede bir backend’den durumu güncelle (polling)
+// 5 saniyede bir durumu güncelle (polling)
 setInterval(loadSeatStatus, 5000);
 
 // 3️⃣ Checkout / Ödeme simülasyonu
@@ -173,16 +151,14 @@ checkoutBtn.addEventListener("click", async () => {
         }
       });
 
-      // Her satın alınan koltuk için 1 bonus
       bonusRemaining += data.purchased.length;
       cart = [];
-      if (bonusText) bonusText.innerText = bonusRemaining;
+      bonusText.innerText = bonusRemaining;
 
       alert(`Satın alma başarılı ✅ Bonus hakkınız: ${bonusRemaining}`);
     } else {
       alert("Ödeme sırasında hata oluştu!");
     }
-
   } catch (err) {
     console.error(err);
     alert("Ödeme başarısız!");
