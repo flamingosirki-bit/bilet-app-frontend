@@ -30,66 +30,66 @@ rows.forEach(row => {
     seat.innerText = ""; 
 
     seat.addEventListener("click", async () => {
-      if (seat.classList.contains("sold")) return;
+      if (seat.classList.contains("sold")) return; // Satılmış koltuklar tıklanamaz
 
-    // Deselect
-if (seat.classList.contains("selected")) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/unlock-seats`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ selectedSeats: [seat.dataset.id], userId })
-    });
-
-    const data = await response.json();
-    console.log("Unlocked seats:", data.unlockedSeats);
-
-    seat.classList.remove("selected");
-    seat.classList.add("free");
-    cart = cart.filter(s => s !== seat.dataset.id);
-
-    if (seat.dataset.bonus === "1") {
-      bonusRemaining++;
-      bonusText.innerText = bonusRemaining;
-    }
-    seat.dataset.bonus = "0";
-
-  } catch (err) {
-    console.error("Koltuk iptal hatası:", err);
-    alert("Koltuk iptali başarısız!");
-  }
-  return;
-}
-
-
-      const isBonus = bonusRemaining > 0;
+      const isSelected = seat.classList.contains("selected");
 
       try {
-        const response = await fetch(`${API_BASE_URL}/lock-seats`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ selectedSeats: [seat.dataset.id], userId, isBonus })
-        });
+        if (isSelected) {
+          // ------------------ SEAT UNLOCK ------------------ //
+          const response = await fetch(`${API_BASE_URL}/unlock-seats`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ seatsToUnlock: [seat.dataset.id], userId })
+          });
 
-        const data = await response.json();
+          const data = await response.json();
+          console.log("Unlocked seats:", data.unlockedSeats);
 
-        if (data.lockedSeats.includes(seat.dataset.id)) {
-          seat.classList.add("selected");
-          seat.classList.remove("free");
-          seat.dataset.bonus = isBonus ? "1" : "0";
-          cart.push(seat.dataset.id);
+          if (data.unlockedSeats.includes(seat.dataset.id)) {
+            seat.classList.remove("selected");
+            seat.classList.add("free");
+            cart = cart.filter(s => s !== seat.dataset.id);
 
-          if (isBonus) {
-            bonusRemaining--;
-            bonusText.innerText = bonusRemaining;
-            alert(`Bonus koltuk seçildi! Kalan bonus: ${bonusRemaining}`);
+            if (seat.dataset.bonus === "1") {
+              bonusRemaining++;
+              bonusText.innerText = bonusRemaining;
+            }
+            seat.dataset.bonus = "0";
+          } else {
+            alert(`${seat.dataset.id} koltuğu iptal edilemedi!`);
           }
+
         } else {
-          alert(`${seat.dataset.id} koltuğu seçilemedi!`);
+          // ------------------ SEAT LOCK ------------------ //
+          const isBonus = bonusRemaining > 0;
+
+          const response = await fetch(`${API_BASE_URL}/lock-seats`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ selectedSeats: [seat.dataset.id], userId, isBonus })
+          });
+
+          const data = await response.json();
+
+          if (data.lockedSeats.includes(seat.dataset.id)) {
+            seat.classList.add("selected");
+            seat.classList.remove("free");
+            seat.dataset.bonus = isBonus ? "1" : "0";
+            cart.push(seat.dataset.id);
+
+            if (isBonus) {
+              bonusRemaining--;
+              bonusText.innerText = bonusRemaining;
+              alert(`Bonus koltuk seçildi! Kalan bonus: ${bonusRemaining}`);
+            }
+          } else {
+            alert(`${seat.dataset.id} koltuğu seçilemedi!`);
+          }
         }
       } catch (err) {
-        console.error(err);
-        alert("Backend bağlantı hatası!");
+        console.error("Koltuk işlemi hatası:", err);
+        alert("Koltuk seçme/iptal sırasında hata oluştu!");
       }
     });
 
