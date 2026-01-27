@@ -1,12 +1,14 @@
+// ------------------ CONFIG ------------------ //
 const API_BASE_URL = "https://bilet-app-backend-1.onrender.com"; 
-alert("SCRIPT LOADED FROM RENDER");
+console.log("SCRIPT LOADED FROM RENDER");
 
+// ------------------ DOM ELEMENTS ------------------ //
 const seatWrapper = document.getElementById("seatWrapper");
 const checkoutBtn = document.getElementById("checkoutBtn");
 const bonusText = document.getElementById("bonusText");
-const userId = "user1";
+const userId = "user1"; // Örnek kullanıcı
 
-// Satır ve koltuk ayarları
+// ------------------ SEAT SETUP ------------------ //
 const rows = [];
 for (let i = 0; i < 30; i++) {
   rows.push(i < 26 ? String.fromCharCode(65 + i) : "A" + String.fromCharCode(65 + i - 26));
@@ -16,7 +18,7 @@ const seatsPerRow = 30;
 let cart = [];
 let bonusRemaining = 0;
 
-// Koltukları oluştur
+// ------------------ CREATE SEATS ------------------ //
 rows.forEach(row => {
   const rowDiv = document.createElement("div");
   rowDiv.className = "row";
@@ -25,11 +27,12 @@ rows.forEach(row => {
     const seat = document.createElement("button");
     seat.className = "seat free";
     seat.dataset.id = `${row}${i}`;
-    seat.innerText = "";
+    seat.innerText = ""; 
 
     seat.addEventListener("click", async () => {
       if (seat.classList.contains("sold")) return;
 
+      // Deselect
       if (seat.classList.contains("selected")) {
         seat.classList.remove("selected");
         seat.classList.add("free");
@@ -79,17 +82,19 @@ rows.forEach(row => {
   seatWrapper.appendChild(rowDiv);
 });
 
-// Backend’den koltuk durumlarını yükle
+// ------------------ LOAD SEAT STATUS ------------------ //
 async function loadSeatStatus() {
   try {
     const response = await fetch(`${API_BASE_URL}/seats-status`);
     const data = await response.json();
 
+    // Satılmış koltuklar
     data.soldSeats.forEach(id => {
       const seatBtn = document.querySelector(`.seat[data-id='${id}']`);
       if (seatBtn) seatBtn.classList.add("sold");
     });
 
+    // Kilitli/selected koltuklar
     data.lockedSeats.forEach(id => {
       const seatBtn = document.querySelector(`.seat[data-id='${id}']`);
       if (seatBtn) seatBtn.classList.add("selected");
@@ -100,10 +105,11 @@ async function loadSeatStatus() {
   }
 }
 
+// İlk yükleme ve her 5 saniyede bir güncelle
 loadSeatStatus();
 setInterval(loadSeatStatus, 5000);
 
-// Checkout
+// ------------------ CHECKOUT ------------------ //
 checkoutBtn.addEventListener("click", async () => {
   if (cart.length === 0) { alert("Sepetiniz boş!"); return; }
 
