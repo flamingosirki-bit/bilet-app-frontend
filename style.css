@@ -1,3 +1,21 @@
+/* Sayfayı ortalamak */
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* dikey ortala */
+  align-items: center;     /* yatay ortala */
+  min-height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+/* Bonus ve checkout alanını ortala */
+#checkoutBtn, #bonusText {
+  margin-top: 20px;
+  text-align: center;
+}
+
 /* Koltuk alanı */
 .seat-wrapper {
   display: flex;

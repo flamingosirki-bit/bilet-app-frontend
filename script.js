@@ -32,18 +32,35 @@ rows.forEach(row => {
     seat.addEventListener("click", async () => {
       if (seat.classList.contains("sold")) return;
 
-      // Deselect
-      if (seat.classList.contains("selected")) {
-        seat.classList.remove("selected");
-        seat.classList.add("free");
-        cart = cart.filter(s => s !== seat.dataset.id);
-        if (seat.dataset.bonus === "1") {
-          bonusRemaining++;
-          bonusText.innerText = bonusRemaining;
-        }
-        seat.dataset.bonus = "0";
-        return;
-      }
+    // Deselect
+if (seat.classList.contains("selected")) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/unlock-seats`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selectedSeats: [seat.dataset.id], userId })
+    });
+
+    const data = await response.json();
+    console.log("Unlocked seats:", data.unlockedSeats);
+
+    seat.classList.remove("selected");
+    seat.classList.add("free");
+    cart = cart.filter(s => s !== seat.dataset.id);
+
+    if (seat.dataset.bonus === "1") {
+      bonusRemaining++;
+      bonusText.innerText = bonusRemaining;
+    }
+    seat.dataset.bonus = "0";
+
+  } catch (err) {
+    console.error("Koltuk iptal hatası:", err);
+    alert("Koltuk iptali başarısız!");
+  }
+  return;
+}
+
 
       const isBonus = bonusRemaining > 0;
 
