@@ -53,10 +53,20 @@ rows.forEach(row => {
 // Checkout
 checkoutBtn.addEventListener("click", () => {
   if (cart.length === 0) { alert("Sepetiniz boş!"); return; }
-  alert(`Satın alındı: ${cart.join(", ")}`);
+
+  // Bonus hakkını ekle
+  bonusRemaining += cart.length;
+  bonusText.innerText = bonusRemaining;
+
   cart.forEach(id => {
     const seatBtn = document.querySelector(`.seat[data-id='${id}']`);
-    if (seatBtn) { seatBtn.classList.remove("selected"); seatBtn.classList.add("sold"); }
+    if (seatBtn) {
+      seatBtn.classList.remove("selected");
+      seatBtn.classList.add("sold");
+      seatBtn.dataset.bonus = "0"; // satın alınan koltuk bonusu reset
+    }
   });
+
   cart = [];
+  alert(`Satın alma başarılı ✅ Bonus: ${bonusRemaining}`);
 });
