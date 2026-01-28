@@ -70,28 +70,46 @@ body {
 
 /* Koltuk alanı */
 .seat-wrapper {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(24px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 4px;
   width: 90%;
   max-width: 1000px;
-  justify-content: center; /* grid’i ortala */
+  align-items: center; /* satırları ortala */
   padding: 10px 0;
   overflow-x: auto;
 }
 
+/* Her satır */
+.row {
+  display: flex;
+  gap: 4px;
+  justify-content: center; /* satır içindeki koltukları ortala */
+}
+
 /* Koltuklar */
 .seat {
-  width: 100%;
-  aspect-ratio: 1;
+  width: 28px;
+  height: 28px;
   border: 1px solid #333;
   border-radius: 4px;
   cursor: pointer;
   background-color: #eee;
   text-align: center;
-  line-height: 1;
-  font-size: 0.6rem;
+  line-height: 28px;
+  font-size: 11px;
+  padding: 0;
 }
+
+/* Mobil uyum */
+@media (max-width: 768px) {
+  .seat { width: 24px; height: 24px; line-height: 24px; font-size: 10px; }
+}
+
+@media (max-width: 480px) {
+  .seat { width: 20px; height: 20px; line-height: 20px; font-size: 9px; }
+}
+
 
 /* Durum renkleri */
 .seat.free { background-color: #eee; }
@@ -103,13 +121,3 @@ body {
   cursor: not-allowed; 
 }
 
-/* Mobil uyum */
-@media (max-width: 768px) {
-  .seat-wrapper { grid-template-columns: repeat(auto-fit, minmax(20px, 1fr)); }
-  .seat { font-size: 0.55rem; }
-}
-
-@media (max-width: 480px) {
-  .seat-wrapper { grid-template-columns: repeat(auto-fit, minmax(16px, 1fr)); }
-  .seat { font-size: 0.45rem; }
-}
