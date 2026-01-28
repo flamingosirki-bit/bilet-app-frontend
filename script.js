@@ -29,38 +29,83 @@ rows.forEach(row => {
     seat.dataset.id = `${row}${i}`;
     seat.innerText = ""; 
 
-    seat.addEventListener("click", async () => {
-      if (seat.classList.contains("sold")) return; // Satılmış koltuklar tıklanamaz
+ seat.addEventListener("click", async () => {
+  if (seat.classList.contains("sold")) return; // Satılmış koltuklar tıklanamaz
 
-      const isSelected = seat.classList.contains("selected");
+  const isSelected = seat.classList.contains("selected");
 
-      try {
-        if (isSelected) {
-          // ------------------ SEAT UNLOCK ------------------ //
-          const response = await fetch(`${API_BASE_URL}/unlock-seats`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ seatsToUnlock: [seat.dataset.id], userId })
-          });
+  try {
 
-          const data = await response.json();
-          console.log("Unlocked seats:", data.unlockedSeats);
+    // ================== UNLOCK ==================
+    if (isSelected) {
+      const response = await fetch(`${API_BASE_URL}/unlock-seats`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          seatsToUnlock: [seat.dataset.id],
+          userId
+        })
+      });
 
-          if (data.unlockedSeats.includes(seat.dataset.id)) {
-            seat.classList.remove("selected");
-            seat.classList.add("free");
-            cart = cart.filter(s => s !== seat.dataset.id);
+      const data = await response.json();
 
-            if (seat.dataset.bonus === "1") {
-              bonusRemaining++;
-              bonusText.innerText = bonusRemaining;
-            }
-            seat.dataset.bonus = "0";
-          } else {
-            alert(`${seat.dataset.id} koltuğu iptal edilemedi!`);
-          }
+      if (data.unlockedSeats?.includes(seat.dataset.id)) {
+        seat.classList.remove("selected");
+        seat.classList.add("free");
 
-        } else {
+        cart = cart.filter(s => s !== seat.dataset.id);
+
+        if (seat.dataset.bonus === "1") {
+          bonusRemaining++;
+          bonusText.innerText = bonusRemaining;
+        }
+
+        seat.dataset.bonus = "0";
+      } else {
+        alert("Koltuk iptal edilemedi!");
+      }
+
+    }
+
+    // ================== LOCK ==================
+    else {
+      const isBonus = bonusRemaining > 0;
+
+      const response = await fetch(`${API_BASE_URL}/lock-seats`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selectedSeats: [seat.dataset.id],
+          userId,
+          isBonus
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.lockedSeats?.includes(seat.dataset.id)) {
+        seat.classList.add("selected");
+        seat.classList.remove("free");
+
+        cart.push(seat.dataset.id);
+
+        seat.dataset.bonus = isBonus ? "1" : "0";
+
+        if (isBonus) {
+          bonusRemaining--;
+          bonusText.innerText = bonusRemaining;
+        }
+      } else {
+        alert("Koltuk seçilemedi!");
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Backend bağlantı hatası!");
+  }
+});
+
           // ------------------ SEAT LOCK ------------------ //
           const isBonus = bonusRemaining > 0;
 

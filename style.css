@@ -20,31 +20,47 @@ body {
 .seat-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   padding: 10px;
   max-width: 100%;
   overflow-x: auto;
+  transform-origin: top center;
 }
 
 /* Her satır */
 .row {
   display: flex;
-  gap: 5px;
+  gap: 6px;
+  justify-content: center;
 }
 
 /* Koltuklar */
 .seat {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border: 1px solid #333;
   border-radius: 4px;
   cursor: pointer;
   background-color: #eee;
   text-align: center;
-  line-height: 30px;
-  font-size: 12px;
+  line-height: 28px;
+  font-size: 11px;
   padding: 0;
 }
+
+/* Mobil uyum */
+@media (max-width: 768px) {
+  .seat-wrapper {
+    transform: scale(0.75);
+  }
+}
+
+@media (max-width: 480px) {
+  .seat-wrapper {
+    transform: scale(0.6);
+  }
+}
+
 
 /* Durum renkleri */
 .seat.free { background-color: #eee; }
