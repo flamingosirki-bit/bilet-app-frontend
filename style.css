@@ -66,3 +66,10 @@ body {
 .seat.free { background-color: #eee; }
 .seat.selected { background-color: #4caf50; color: white; }
 .seat.sold { background-color: #f44336; color: white; cursor: not-allowed; }
+.seat.locked { 
+  background-color: orange; 
+  color: white; 
+  cursor: not-allowed; 
+}
+
+
