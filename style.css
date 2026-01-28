@@ -1,24 +1,22 @@
-/* Sayfayı ortalamak */
+/* Sayfa ve app container */
 body {
   display: flex;
   flex-direction: column;
-  align-items: center;     /* yatay ortala */
+  align-items: center;
   min-height: 100vh;
   margin: 0;
   font-family: Arial, sans-serif;
   background-color: #f5f5f5;
-  overflow-x: hidden;
 }
 
-/* App container */
 .app {
   display: flex;
   flex-direction: column;
-  align-items: center;    /* tüm içerikleri ortala */
+  align-items: center;
   width: 100%;
 }
 
-/* Üst kontrol paneli */
+/* Üst panel */
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -26,13 +24,6 @@ body {
   width: 90%;
   max-width: 1000px;
   margin: 10px 0;
-  padding: 8px 12px;
-  background-color: #f5f5f5;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .actions-panel {
@@ -73,11 +64,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  width: 90%;
-  max-width: 1000px;
-  align-items: center; /* satırları ortala */
   padding: 10px 0;
-  overflow-x: auto;
+  align-items: center; /* satırları ortala */
 }
 
 /* Her satır */
@@ -101,6 +89,12 @@ body {
   padding: 0;
 }
 
+/* Durum renkleri */
+.seat.free { background-color: #eee; }
+.seat.selected { background-color: #4caf50; color: white; }
+.seat.sold { background-color: #f44336; color: white; cursor: not-allowed; }
+.seat.locked { background-color: orange; color: white; cursor: not-allowed; }
+
 /* Mobil uyum */
 @media (max-width: 768px) {
   .seat { width: 24px; height: 24px; line-height: 24px; font-size: 10px; }
@@ -109,15 +103,3 @@ body {
 @media (max-width: 480px) {
   .seat { width: 20px; height: 20px; line-height: 20px; font-size: 9px; }
 }
-
-
-/* Durum renkleri */
-.seat.free { background-color: #eee; }
-.seat.selected { background-color: #4caf50; color: white; }
-.seat.sold { background-color: #f44336; color: white; cursor: not-allowed; }
-.seat.locked { 
-  background-color: orange; 
-  color: white; 
-  cursor: not-allowed; 
-}
-
