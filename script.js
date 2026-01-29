@@ -1,8 +1,17 @@
 // ------------------ CONFIG ------------------
 const API_BASE_URL = "https://bilet-app-backend-1.onrender.com";
-const userId = "user_" + Math.floor(Math.random() * 100000); // her kullanıcı farklı
+let userId = null;      // Login sonrası dolacak
+let token = null;       // JWT token
+let bonusRemaining = 0; // Kullanıcının bonusu
 
-// ------------------ DOM ------------------
+// ------------------ LOGIN DOM ------------------
+const loginWrapper = document.getElementById("loginWrapper");
+const appWrapper = document.getElementById("appWrapper");
+const loginBtn = document.getElementById("loginBtn");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+
+// ------------------ APP DOM ------------------
 const seatWrapper = document.getElementById("seatWrapper");
 const checkoutBtn = document.getElementById("checkoutBtn");
 const bonusText = document.getElementById("bonusText");
@@ -15,7 +24,63 @@ for (let i = 0; i < 30; i++) {
 const seatsPerRow = 30;
 
 let cart = [];
-let bonusRemaining = 0;
+
+// ------------------ LOGIN EVENT ------------------
+loginBtn.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!email || !password) return alert("Email ve şifre gerekli!");
+  login(email, password);
+});
+
+// ------------------ LOGIN FUNCTION ------------------
+async function login(email, password) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (data.token) {
+      token = data.token;
+      userId = data.userId;
+      bonusRemaining = data.bonus || 0;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("bonusRemaining", bonusRemaining);
+
+      bonusText.innerText = bonusRemaining;
+
+      loginWrapper.style.display = "none";
+      appWrapper.style.display = "block";
+
+      loadSeatStatus();
+    } else {
+      alert(data.message || "Login başarısız");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Sunucu hatası");
+  }
+}
+
+// ------------------ AUTO LOGIN ------------------
+if (localStorage.getItem("token") && localStorage.getItem("userId")) {
+  token = localStorage.getItem("token");
+  userId = localStorage.getItem("userId");
+  bonusRemaining = parseInt(localStorage.getItem("bonusRemaining") || "0");
+
+  bonusText.innerText = bonusRemaining;
+
+  loginWrapper.style.display = "none";
+  appWrapper.style.display = "block";
+
+  loadSeatStatus();
+}
 
 // ------------------ CREATE SEATS ------------------
 rows.forEach(row => {
@@ -29,6 +94,7 @@ rows.forEach(row => {
     seat.dataset.bonus = "0";
 
     seat.addEventListener("click", async () => {
+      if (!userId) return alert("Önce giriş yapın!");
       if (seat.classList.contains("sold") || seat.classList.contains("locked")) return;
 
       const isSelected = seat.classList.contains("selected");
@@ -96,6 +162,8 @@ rows.forEach(row => {
 
 // ------------------ LOAD SEAT STATUS ------------------
 async function loadSeatStatus() {
+  if (!userId) return;
+
   try {
     const res = await fetch(`${API_BASE_URL}/seats-status`);
     const data = await res.json();
@@ -103,9 +171,7 @@ async function loadSeatStatus() {
     // Sold
     data.soldSeats.forEach(id => {
       const seat = document.querySelector(`.seat[data-id='${id}']`);
-      if (seat) {
-        seat.className = "seat sold";
-      }
+      if (seat) seat.className = "seat sold";
     });
 
     // Locked
@@ -126,11 +192,11 @@ async function loadSeatStatus() {
   }
 }
 
-loadSeatStatus();
 setInterval(loadSeatStatus, 5000);
 
 // ------------------ CHECKOUT ------------------
 checkoutBtn.addEventListener("click", async () => {
+  if (!userId) return alert("Önce giriş yapın!");
   if (cart.length === 0) return alert("Sepet boş");
 
   try {

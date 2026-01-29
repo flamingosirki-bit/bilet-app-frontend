@@ -7,25 +7,63 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="app">
 
-  <!-- Üst kontrol paneli -->
-  <div class="top-bar">
-    <h1>Koltuk Seçimi</h1>
-    <div class="actions-panel">
-      <span class="bonus">Bonus: <strong id="bonusText">0</strong></span>
-      <button id="checkoutBtn" class="buy">Satın Al</button>
-    </div>
+  <!-- ------------------ LOGIN ------------------ -->
+  <div id="loginWrapper">
+    <h2>Giriş Yap</h2>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Şifre" required>
+    <button id="loginBtn">Giriş</button>
   </div>
-
-  <!-- Sahne -->
-  <div class="screen">SAHNE</div>
-
-  <!-- Koltuk alanı -->
-  <div id="seatWrapper" class="seat-wrapper"></div>
-
+  <div id="loginWrapper">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Şifre">
+  <button id="loginBtn">Giriş Yap</button>
 </div>
 
-<script src="script.js"></script>
+<div id="appWrapper" style="display:none;">
+  <div id="seatWrapper"></div>
+  <div>Bonus: <span id="bonusText">0</span></div>
+  <button id="checkoutBtn">Satın Al</button>
+</div>
+
+  <!-- ------------------ MAIN APP ------------------ -->
+  <div id="appWrapper" style="display:none;">
+    <h2>Bilet Seçimi</h2>
+    <p>Bonus: <span id="bonusText">0</span></p>
+    <div id="seatWrapper"></div>
+    <button id="checkoutBtn">Satın Al</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bilet App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ------------------ LOGIN ------------------ -->
+  <div id="loginWrapper">
+    <h2>Giriş Yap</h2>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Şifre" required>
+    <button id="loginBtn">Giriş</button>
+  </div>
+
+  <!-- ------------------ MAIN APP ------------------ -->
+  <div id="appWrapper" style="display:none;">
+    <h2>Bilet Seçimi</h2>
+    <p>Bonus: <span id="bonusText">0</span></p>
+    <div id="seatWrapper"></div>
+    <button id="checkoutBtn">Satın Al</button>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
