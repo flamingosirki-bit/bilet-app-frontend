@@ -12,7 +12,7 @@ body {
 #loginWrapper, #appWrapper {
   max-width: 500px;
   width: 100%;
-  margin: 20px auto;
+  margin: auto;
 }
 
 input, button {
@@ -23,19 +23,22 @@ input, button {
   font-size: 14px;
 }
 
-button#loginBtn {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 6px;
+button {
   cursor: pointer;
 }
 
-button#loginBtn:hover {
-  background-color: #43a047;
+/* Üst panel ve sahne */
+.screen {
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  background-color: #ddd;
+  padding: 6px 0;
+  border-radius: 4px;
+  margin: 10px 0;
 }
 
-/* Sahne / koltuk alanı */
+/* Koltuk alanı */
 #seatWrapper {
   display: flex;
   flex-direction: column;
@@ -44,7 +47,7 @@ button#loginBtn:hover {
   align-items: center;
 }
 
-/* Satırlar */
+/* Her satır */
 .row {
   display: flex;
   gap: 4px;
