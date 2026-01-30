@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bilet App</title>
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bilet App</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
 <div id="loginWrapper">
   <h2>Giriş Yap</h2>
-  <input type="email" id="email" placeholder="Email" required>
-  <input type="password" id="password" placeholder="Şifre" required>
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Şifre" />
   <button id="loginBtn">Giriş</button>
 </div>
 
-<div id="appWrapper">
+<div id="appWrapper" style="display:none;">
+  <h3>Koltuk Seçimi</h3>
   <div id="seatWrapper"></div>
-  <div>Bonus: <span id="bonusText">0</span></div>
-  <button id="checkoutBtn">Satın Al</button>
+  <div class="bottom">
+    Bonus: <span id="bonusText">0</span>
+    <button id="checkoutBtn">Satın Al</button>
+  </div>
 </div>
 
-<script src=".js/app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

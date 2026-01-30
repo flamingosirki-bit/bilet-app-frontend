@@ -1,10 +1,9 @@
-
-
-const API_BASE_URL = "https://bilet-app-backend-1.onrender.com";
+const API_BASE = "https://bilet-app-backend-1.onrender.com";
 
 const loginWrapper = document.getElementById("loginWrapper");
 const appWrapper = document.getElementById("appWrapper");
 const seatWrapper = document.getElementById("seatWrapper");
+
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
@@ -13,141 +12,102 @@ const bonusText = document.getElementById("bonusText");
 
 let userId = null;
 let cart = [];
-let bonusRemaining = 0;
 
-const rows = [];
-for (let i = 0; i < 30; i++) rows.push(i < 26 ? String.fromCharCode(65 + i) : "A" + String.fromCharCode(65 + i - 26));
-const seatsPerRow = 30;
+const rows = Array.from({length:10}, (_,i)=>String.fromCharCode(65+i));
+const seatsPerRow = 10;
 
-// CREATE SEATS
-function createSeats() {
-  seatWrapper.innerHTML = "";
-  rows.forEach(row => {
-    const rowDiv = document.createElement("div");
-    rowDiv.className = "row";
-    for (let i = 1; i <= seatsPerRow; i++) {
-      const seat = document.createElement("button");
-      seat.className = "seat free";
-      seat.dataset.id = `${row}${i}`;
-      seat.dataset.bonus = "0";
-      seat.addEventListener("click", handleSeatClick);
-      rowDiv.appendChild(seat);
+// -------- LOGIN --------
+loginBtn.onclick = async () => {
+  const email = emailInput.value;
+  const password = passwordInput.value;
+
+  const res = await fetch(`${API_BASE}/login`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+  if(!data.userId) return alert(data.message);
+
+  userId = data.userId;
+  bonusText.innerText = data.bonus;
+
+  loginWrapper.style.display="none";
+  appWrapper.style.display="block";
+
+  createSeats();
+  loadSeatStatus();
+  setInterval(loadSeatStatus,3000);
+};
+
+// -------- SEATS --------
+function createSeats(){
+  seatWrapper.innerHTML="";
+  rows.forEach(r=>{
+    const row = document.createElement("div");
+    row.className="row";
+    for(let i=1;i<=seatsPerRow;i++){
+      const seat = document.createElement("div");
+      seat.className="seat free";
+      seat.dataset.id = `${r}${i}`;
+      seat.onclick = ()=>toggleSeat(seat);
+      row.appendChild(seat);
     }
-    seatWrapper.appendChild(rowDiv);
+    seatWrapper.appendChild(row);
   });
 }
 
-// HANDLE SEAT CLICK
-async function handleSeatClick(e) {
-  const seat = e.target;
-  if (!userId) return;
+async function toggleSeat(seat){
+  if(seat.classList.contains("sold") || seat.classList.contains("locked")) return;
 
-  if (seat.classList.contains("sold") || seat.classList.contains("locked")) return;
+  const id = seat.dataset.id;
+  const selected = seat.classList.contains("selected");
 
-  const isSelected = seat.classList.contains("selected");
+  const url = selected ? "/unlock-seats" : "/lock-seats";
 
-  try {
-    if (isSelected) {
-      const res = await fetch(`${API_BASE_URL}/unlock-seats`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selectedSeats: [seat.dataset.id], userId })
-      });
-      const data = await res.json();
-      if (data.unlockedSeats?.includes(seat.dataset.id)) {
-        seat.classList.remove("selected");
-        seat.classList.add("free");
-        cart = cart.filter(s => s !== seat.dataset.id);
-        if (seat.dataset.bonus === "1") { bonusRemaining++; bonusText.innerText = bonusRemaining; }
-        seat.dataset.bonus = "0";
-      }
-    } else {
-      const isBonus = bonusRemaining > 0;
-      const res = await fetch(`${API_BASE_URL}/lock-seats`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selectedSeats: [seat.dataset.id], userId, isBonus })
-      });
-      const data = await res.json();
-      if (data.lockedSeats?.includes(seat.dataset.id)) {
-        seat.classList.add("selected");
-        seat.classList.remove("free");
-        cart.push(seat.dataset.id);
-        seat.dataset.bonus = isBonus ? "1" : "0";
-        if (isBonus) { bonusRemaining--; bonusText.innerText = bonusRemaining; }
-      }
-    }
-  } catch (err) { console.error(err); alert("Sunucu hatası"); }
+  const res = await fetch(API_BASE+url,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ selectedSeats:[id], userId })
+  });
+
+  const data = await res.json();
+
+  if(selected){
+    seat.className="seat free";
+    cart = cart.filter(s=>s!==id);
+  }else if(data.lockedSeats?.includes(id)){
+    seat.className="seat selected";
+    cart.push(id);
+  }
 }
 
-// LOAD SEAT STATUS
-async function loadSeatStatus() {
-  if (!userId) return;
+// -------- STATUS --------
+async function loadSeatStatus(){
+  const res = await fetch(`${API_BASE}/seats-status`);
+  const data = await res.json();
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/seats-status`);
-    const data = await res.json();
-
-    data.soldSeats.forEach(id => {
-      const seat = document.querySelector(`.seat[data-id='${id}']`);
-      if (seat) seat.className = "seat sold";
-    });
-
-    Object.entries(data.lockedSeats).forEach(([id, info]) => {
-      const seat = document.querySelector(`.seat[data-id='${id}']`);
-      if (!seat) return;
-      if (info.userId !== userId) seat.className = "seat locked";
-      else { seat.className = "seat selected"; if (!cart.includes(id)) cart.push(id); }
-    });
-  } catch (err) { console.error("Seat status error", err); }
+  document.querySelectorAll(".seat").forEach(seat=>{
+    const id = seat.dataset.id;
+    if(data.soldSeats.includes(id)) seat.className="seat sold";
+    else if(data.lockedSeats[id] && data.lockedSeats[id].userId!==userId)
+      seat.className="seat locked";
+  });
 }
 
-// CHECKOUT
-checkoutBtn.addEventListener("click", async () => {
-  if (!userId) return alert("Giriş yapmalısınız");
-  if (cart.length === 0) return alert("Sepet boş");
+// -------- CHECKOUT --------
+checkoutBtn.onclick = async ()=>{
+  if(cart.length===0) return alert("Sepet boş");
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, cart })
-    });
-    const data = await res.json();
-    if (data.purchased?.length) {
-      bonusRemaining += data.purchased.length;
-      bonusText.innerText = bonusRemaining;
-      cart = [];
-      loadSeatStatus();
-      alert("Satın alma başarılı ✅");
-    }
-  } catch (err) { console.error(err); alert("Ödeme hatası"); }
-});
+  const res = await fetch(`${API_BASE}/checkout`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ userId, cart })
+  });
 
-// LOGIN
-loginBtn.addEventListener("click", async () => {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
-  if (!email || !password) return alert("Email ve şifre gerekli");
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-
-    if (data.userId) {
-      userId = data.userId;
-      loginWrapper.style.display = "none";
-      bonusRemaining = data.bonus || 0;
-      bonusText.innerText = bonusRemaining;
-      loadSeatStatus();
-      setInterval(loadSeatStatus, 5000);
-    } else alert(data.message || "Giriş başarısız");
-  } catch (err) { console.error(err); alert("Sunucu hatası"); }
-});
-
-// SAYFA AÇILIRKEN
-createSeats();
+  const data = await res.json();
+  alert("Satın alındı: "+data.purchased.join(", "));
+  cart=[];
+  loadSeatStatus();
+};
